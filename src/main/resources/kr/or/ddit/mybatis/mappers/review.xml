@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.IReviewDAO">
+	<select id="reviewList" resultType="ReviewVO" parameterType="String">
+		SELECT RV_NO, RV_WRITER, RV_RECIPIENT, RV_CONTENT, RV_DATE, RV_GRADE
+		FROM HS_REVIEW
+		WHERE RV_RECIPIENT = #{who}
+	</select>
+	<insert id="insertReview" parameterType="ReviewVO">
+		insert into hs_review(
+			rv_no, rv_writer, rv_recipient, rv_content, rv_date, rv_grade
+		)
+			values
+		(
+			review_seq.nextval, #{rv_writer}, #{rv_recipient}, #{rv_content}, sysdate, #{rv_grade}
+		)
+	</insert>
+	<update id="updateReview" parameterType="ReviewVO">
+		update hs_review
+		   set
+		  rv_content = #{rv_content},
+		  rv_date = sysdate,
+		  rv_grade = #{rv_grade}
+		 where rv_no = #{rv_no}
+	</update>
+	<delete id="deleteReview" parameterType="int">
+		delete from hs_review
+		 where rv_no = #{rv_no}
+	</delete>
+	<select id="selectReviewCount" resultType="long">
+		select count(*)
+		  from hs_review
+		  <if test="searchType eq'tutee'">
+		  where rv_writer = #{searchWord}
+		  </if>
+		  <if test="searchType eq'tutor'">
+		  where rv_recipient = #{searchWord}
+		  </if>
+	</select>
+	<select id="selectReviewList" parameterType="PagingVO" resultType="ReviewVO">
+		select B.*
+		 from(
+			select rownum rnum, A.*
+			  from(
+			        select rv_no, rv_writer, rv_recipient, rv_content, to_char(rv_date, 'yyyy-mm-dd') rv_date, rv_grade
+					  from hs_review
+					 <if test="searchType eq'tutee'">
+					 where rv_writer = #{searchWord}
+					  </if>
+					  <if test="searchType eq'tutor'">
+					  where rv_recipient = #{searchWord}
+					  </if>
+			         order by rv_date desc
+			  )A
+		)B
+	</select>
+	<select id="selectReview" parameterType="int" resultType="ReviewVO">
+		select rv_no, rv_writer, rv_recipient, rv_content, to_char(rv_date, 'yyyy-mm-dd') rv_date, rv_grade
+		  from hs_review
+		 where rv_no = #{rv_no}
+	</select>
+</mapper>

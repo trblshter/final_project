@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.user.dao.IUserDAO">
+	<select id="selectUser" resultType="UserVO">
+		SELECT USER_ID,
+		    USER_PASS,
+		    USER_NAME,
+		    USER_ZIPCODE,
+		    USER_ADDR1,
+		    USER_ADDR2,
+		    USER_EMAIL,
+		    USER_TEL,
+		    TO_CHAR(USER_BIRTH,'YYYY-MM-DD') USER_BIRTH,
+		    USER_IMAGE,
+<!-- 		    USER_ACCOUNT_NAME, -->
+<!-- 		    USER_ACCOUNT_NUM, -->
+		    USER_AUTH
+		    , TT_AUTH, 
+		    TT_CAREER, 
+		    TT_EDU, 
+		    TT_CTR_IMAGE
+		FROM HS_USER LEFT JOIN HS_TUTOR ON(HS_USER.USER_ID = HS_TUTOR.TT_ID)
+		WHERE USER_ID = #{user_id}
+	</select>
+	<select id="selectAdmin" resultType="UserVO">
+		SELECT ADMIN_ID user_id, ADMIN_PASS user_pass 
+		FROM HS_ADMIN
+		WHERE ADMIN_ID = #{user_id}
+	</select>
+	<insert id="insertUser">
+		INSERT INTO HS_USER (
+		    USER_ID,
+		    USER_PASS,
+		    USER_NAME,
+		    USER_ZIPCODE,
+		    USER_ADDR1,
+		    USER_ADDR2,
+		    USER_EMAIL,
+		    USER_TEL,
+		    USER_BIRTH,
+		    USER_IMAGE
+<!-- 		    USER_ACCOUNT_NAME, -->
+<!-- 		    USER_ACCOUNT_NUM -->
+		) VALUES (
+		    #{user_id},
+		    #{user_pass},
+		    #{user_name},
+		    #{user_zipcode},
+		    #{user_addr1},
+		    #{user_addr2},
+		    #{user_email},
+		    #{user_tel},
+		    TO_DATE(#{user_birth},'YYYY-MM-DD'),
+		    #{user_image, jdbcType=BLOB}
+<!-- 		    #{user_account_name}, -->
+<!-- 		    #{user_account_num} -->
+		)
+	</insert>
+	<insert id="insertTutorUser">
+		INSERT INTO HS_TUTOR (
+		    tt_id,
+		    tt_career,
+		    tt_edu,
+		    tt_auth,
+		    tt_ctr_image
+		) VALUES (
+		    #{user_id},
+		    #{tt_career},
+		    #{tt_edu},
+		    #{tt_auth},
+		    #{tt_ctr_image, jdbcType=BLOB}
+		)
+	</insert>
+	<update id="updateUser" parameterType="UserVO">
+		UPDATE HS_USER
+	    SET
+		    user_pass = #{user_pass},
+		    user_name = #{user_name},
+		    user_zipcode = #{user_zipcode},
+		    user_addr1 = #{user_addr1},
+		    user_addr2 = #{user_addr2},
+		    user_email = #{user_email},
+		    user_tel = #{user_tel},
+		    user_birth = TO_DATE(#{user_birth},'YYYY-MM-DD')
+		    <if test="user_image!=null">
+		    , user_image = #{user_image, jdbcType=BLOB}
+		    </if>
+<!-- 		    user_account_name = #{user_account_name}, -->
+<!-- 		    user_account_num = #{user_account_num} -->
+		WHERE
+		    user_id = #{user_id}
+	</update>
+	<update id="updateTutorUser" parameterType="UserVO">
+		UPDATE HS_TUTOR
+	    SET
+		    tt_career = #{tt_career},
+		    <if test="tt_ctr_image!=null">
+		    tt_ctr_image = #{tt_ctr_image, jdbcType=BLOB},
+		    </if>
+		    tt_edu = #{tt_edu}
+		WHERE
+			tt_id = #{user_id}
+	</update>
+	<delete id="deleteUser">
+		DELETE FROM HS_USER
+		WHERE
+   			 user_id =#{user_id}
+	</delete>
+	
+	<select id="selectAuthTutorCount" resultType="long">
+	select count(*)
+	  from hs_tutor
+	 where tt_auth = 0
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			and tt_id like '%'||#{searchWord}||'%'
+		</if>
+	</select>
+	<select id="selectAuthTutorList" resultType="UserVO" parameterType="PagingVO" >
+		select B.*
+		  from (
+			select rownum rnum, A.*
+			  from (
+			  		select hs_user.*, hs_tutor.*
+					  from hs_user left join hs_tutor on(hs_user.user_id = hs_tutor.tt_id)
+					 where tt_auth = 0
+			  )A
+		  )B
+		  <![CDATA[
+			WHERE rnum between #{startRow} and #{endRow}
+		  ]]>
+		  <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			and user_id like '%'||#{searchWord}||'%'
+		  </if>
+	</select>
+	<select id="selectAuthTutor" parameterType="string" resultType="UserVO">
+		select user_id, user_pass, user_name, 
+			user_zipcode, user_addr1, user_addr2, 
+			user_email, user_tel, to_char(user_birth, 'yyyy-mm-dd') user_birth, 
+			user_image
+<!-- 			user_account_name, user_account_num -->
+			, hs_tutor.*
+		  from hs_user left join hs_tutor on(hs_user.user_id = hs_tutor.tt_id)
+		  where tt_auth = 0 and user_id = #{user_id}
+	</select>
+	<update id="authenticateTutor" parameterType="string">
+		update hs_tutor
+		   set tt_auth = 1
+		 where tt_id = #{user_id}
+	</update>
+	<update id="authCancelTutor" parameterType="string">
+		update hs_tutor
+		   set tt_auth = 2
+		 where tt_id = #{user_id}
+	</update>
+	<select id="selectFindUser" resultType="UserVO">
+		SELECT USER_ID,
+		    USER_PASS,
+		    USER_NAME,
+		    USER_ZIPCODE,
+		    USER_ADDR1,
+		    USER_ADDR2,
+		    USER_EMAIL,
+		    USER_TEL,
+		    TO_CHAR(USER_BIRTH,'YYYY-MM-DD') USER_BIRTH,
+		    USER_IMAGE,
+<!-- 		    USER_ACCOUNT_NAME, -->
+<!-- 		    USER_ACCOUNT_NUM, -->
+		    USER_AUTH
+		    , TT_AUTH, 
+		    TT_CAREER, 
+		    TT_EDU, 
+		    TT_CTR_IMAGE
+		FROM HS_USER LEFT JOIN HS_TUTOR ON(HS_USER.USER_ID = HS_TUTOR.TT_ID)
+		WHERE USER_EMAIL = #{user_email}
+			<if test="user_id!=null">
+			AND USER_ID = #{user_id}
+			</if>
+			<if test="user_name!=null">
+			AND USER_NAME = #{user_name} 
+			</if>
+	</select>
+</mapper>

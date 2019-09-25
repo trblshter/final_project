@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.ITeacherCommentDAO">
+	<select id="selectTeacherCommentList" parameterType="PagingVO" resultType="LectureCommentVO">
+		SELECT B.*
+		FROM(
+			SELECT ROWNUM RNUM, A.*
+			FROM(
+				SELECT 
+					LC_NO, A.USER_ID, TO_CHAR(LC_DATE, 'YYYY-MM-DD') LC_DATE,
+		    		LU_NO, LC_CONTENT, USER_IMAGE
+				FROM HS_LECTURE_COMMENT A, HS_USER B
+				WHERE
+					A.USER_ID = B.USER_ID
+				AND
+					LU_NO = #{searchVO.lu_no}
+				ORDER BY LC_NO DESC
+			) A
+		) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<insert id="insertTeacherComment">
+		<selectKey order="BEFORE" keyProperty="lc_no" resultType="Integer">
+			SELECT LECTURE_COMMENT_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		 INSERT INTO HS_LECTURE_COMMENT (
+		    LC_NO, USER_ID, LC_DATE,
+		    LU_NO, LC_CONTENT
+		) VALUES (
+		   #{lc_no},  #{user_id}, SYSDATE,
+		   #{lu_no}, #{lc_content}
+		)
+	</insert>
+	
+	<select id="retrieveTeacherCommentCount" resultType="long">
+		SELECT COUNT(*)
+		FROM HS_LECTURE_COMMENT
+		WHERE LU_NO = #{searchVO.lu_no}
+	</select>
+	
+	<select id="retrieveLectureComment" resultType="LectureCommentVO" parameterType="String">
+		SELECT 
+			*
+		FROM 
+			HS_LECTURE_COMMENT
+		WHERE
+			LU_NO = #{lu_no}
+		AND 
+			USER_ID = #{user_id} 
+		
+	</select>
+</mapper>

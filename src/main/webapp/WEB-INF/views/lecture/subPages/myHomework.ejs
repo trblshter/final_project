@@ -1,0 +1,543 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<div style="width: 60.5%; margin: 1%;" id="titleBar">
+		<i class="fas fa-angle-right" id="title">&nbsp;나의 과제</i>
+	<c:if test="${loginUser.user_type eq 'tutor'}">
+		<button class="btn btn-info" style="margin:0 0 0 70%;"
+					data-target="#createModal" data-toggle="modal" id="btn_modal">과제 만들기</button>	
+	</c:if>
+</div>
+	<form id="searchForm">
+<%-- 			<input type="hidden" name="searchType" value="${pagingVO.searchType}" /> --%>
+			<input type="hidden" name="searchWord" value="" /><!-- 세션으로 바꿔줘야됨 -->
+			<input type="hidden" name="page" />
+	</form>
+	<table class="table table-striped" style="margin-top: 10px; margin-left: 10px; width: 60%;">
+		<thead class="head" style="text-align: center;" id="head">
+			<tr style="width: 100%;">
+				<th style="width: 10%; text-align: center;">번호</th>
+				<th style="width: 40%; text-align: center;">과제명</th>
+				<th style="width: 20%; text-align: center;">작성일자</th>
+				<th style="width: 20%; text-align: center;">마감일</th>
+			</tr>
+		</thead>
+		<tbody id="listBody">
+		</tbody>
+	</table>
+	<div id="pagingArea" style="width: 70%; margin-left: 10px; display: inline-block;">${pagingVO.pagingHTMLForBS }</div>
+	
+	
+	<!-- Modal :: 과제 작성 -->
+	<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="createModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createModalLabel">과제 작성</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="uploadForm" method="post">
+          <div class="form-group">
+            <label for="recipient-name" class="col-form-label">과제명</label>
+            <input type="text" class="form-control" name="ht_title">
+            <input type="hidden" class="form-control" name="lecture_no" value="${lt_no}">
+          </div>
+          <div class="form-group">
+            <label for="message-text" class="col-form-label">내용</label>
+            <textarea class="form-control" name="ht_content"></textarea>
+            <label for="message-text" class="col-form-label">제출 기한</label>
+            <input class="form-control" type="date" name="ht_submit">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary swaping" data-dismiss="modal" >닫기</button>
+        <button type="button" class="btn btn-primary swaping" data-dismiss="modal" id="btn_upload" >작성하기</button>
+      </div>
+    </div>
+  </div>
+</div> 
+	<!-- Modal :: 과제 작성 END -->
+	
+	
+	<%-- Modal :: 과제 확인 (a click) --%>
+<div class="modal fade" id="checkHomework" tabindex="-1" role="dialog" aria-labelledby="checkHomeworkLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="checkHomeworkLabel">과제 정보 </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+	      <div class="form-group">
+	        <label readonly id="titleLabel" style="font-size:1.5em;"></label>
+	        <br>
+	        <label for="homework" class="col-form-label">작성 일자</label>
+	        <label readonly id="dateLabel"></label>
+	        <br>
+	        <label for="homework" class="col-form-label">제출 기한</label>
+	        <label readonly id="submitLabel" style="color : #f03a2e;"></label>
+	      </div>
+	      <c:if test="${loginUser.user_type eq 'tutor' }">
+		      <div class="modal-content">
+			      <div class="modal-header">
+			        <h5 class="modal-title">제출 현황</h5>
+			      </div>
+			      	<div class="form-group">
+			      		<table class="table" style="width: 100%;">
+			      			<thead class="head" style="text-align: center;" >
+								<tr style="width: 100%;">
+									<th style="width: 25%; text-align: center;">작성자</th>
+									<th style="width: 45%; text-align: center;">파일명</th>
+									<th style="width: 30%; text-align: center;">제출일</th>
+								</tr>
+							</thead>
+			      			<tbody id="chekcedBody">
+			      			</tbody>
+			      		</table>
+			      </div>
+		   		</div>
+	   	</c:if>	
+	      <div class="form-group" id="tuteeHomework">
+	      </div>
+	      <div class="form-group">
+	        <label for="homework" class="col-form-label">과제 내용</label>
+	        <textarea class="form-control" id="homeworkDesc" readonly ></textarea>
+	      </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+		<c:if test="${loginUser.user_type eq 'tutee'}">	
+	        <button type="button" class="btn btn-info" id="btn_submit" data-dismiss="modal"
+	        	data-target="#submitModal" data-toggle="modal">제출하기</button>
+		</c:if>
+		<c:if test="${loginUser.user_type eq 'tutor'}">	
+			<button type="button" class="btn btn-light" id="btn_update" data-dismiss="modal">수정하기</button>
+			<button type="button" class="btn btn-danger" id="btn_delete" data-dismiss="modal">삭제하기</button>
+		</c:if>
+      </div>
+    </div>
+  </div>
+</div>
+<%-- Modal END :: 과제확인 (a click)  --%>
+	
+<%-- Modal :: Confirm --%>
+
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="conf-modal">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="myModalLabel">정말 삭제하시겠습니까?</h5>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="modal-btn-si">네</button>
+        <button type="button" class="btn btn-light" id="modal-btn-no">아니오</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="alert" role="alert" id="result"></div>
+
+<%-- Modal :: Confirm END --%>	
+	
+<%-- Modal :: Submit Form --%>
+<div class="modal" id="submitModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">과제 제출</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      	<div class="form-group">
+      		<form id="submitForm" method="post" enctype="multipart/form-data">
+		        <label for="homework" class="col-form-label">첨부 파일</label>
+		        <input type="file" class="form-control" name="item"/>
+		        <input type="hidden" name="hs_writer" value="${loginUser.user_id}"/>
+		        <br>
+		      </div>
+		      <div class="form-group">
+		        <label for="homework" class="col-form-label">설명</label>
+		        <textarea class="form-control" name="hs_content"></textarea>
+		      </div>
+		    </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-primary" id="btn_complete" data-dismiss="modal">완료</button>
+      </div>
+    </div>
+  </div>
+</div>	
+<%-- Modal :: Submit Form END --%>
+
+<%-- Modal :: check submitted Form --%>
+<div class="modal" id="checkSubmittedModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">제출 현황</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      	<div class="form-group">
+      		<table class="table" style="width: 100%;">
+      			<thead class="head" style="text-align: center;" >
+					<tr style="width: 100%;">
+						<th style="width: 25%; text-align: center;">작성자</th>
+						<th style="width: 45%; text-align: center;">파일명</th>
+						<th style="width: 30%; text-align: center;">제출일</th>
+					</tr>
+				</thead>
+      			<tbody id="chekcedBody">
+      			</tbody>
+      		</table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>	
+
+<%-- Modal :: check submitted END --%>
+
+
+	
+<script>
+
+function paging(page){
+		if(page<=0) return;
+		searchForm.find("input[name='page']").val(page);
+		searchForm.submit();
+		searchForm.find("input[name='page']").val("");
+	}
+	
+	let searchForm = $("#searchForm");
+	let uploadForm = $("#uploadForm");
+	let submitForm = $("#submitForm");
+	var listBody = $("tbody#listBody");
+	var chekcedBody = $("tbody#chekcedBody");
+	var pagingArea = $("#pagingArea");
+	var btn_upload = $("#btn_upload");
+	var btn_update = $("#btn_update");
+	var btn_delete = $("#btn_delete");
+	var btn_submit = $("#btn_submit");
+	var btn_complete = $("#btn_complete");
+	var btn_rptCheck = $("#btn_rptCheck");
+	var ht_no;
+	var hs_no;
+	
+	var $titleLabel = $("label#titleLabel");
+	var $dateLabel = $("label#dateLabel");
+	var $submitLabel = $("label#submitLabel");
+	var $homeworkDesc = $("textarea#homeworkDesc");
+	var $tuteeHomework = $("div#tuteeHomework");
+	
+	var $ht_title = $("input[name=ht_title]");
+	var $ht_content = $("textarea[name=ht_content]");
+	var $ht_submit = $("input[name=ht_submit]");
+	
+	btn_rptCheck.on("click",function(){
+		
+	});
+	
+	var modalConfirm = function(callback){
+
+	  $("#modal-btn-si").on("click", function(){
+	    callback(true);
+	    $("#conf-modal").modal('hide');
+	  });
+	  
+	  $("#modal-btn-no").on("click", function(){
+	    callback(false);
+	    $("#conf-modal").modal('hide');
+	  });
+	  
+	};
+	
+	var isUpdate = false;
+	var btn_swap = $("button.swaping");
+	
+	btn_complete.on("click", function(){
+		submitForm.submit();
+	});
+	
+	// 학생 과제 제거 func
+	$tuteeHomework.on("click","i",function(){
+	
+		$("#conf-modal").modal('show');
+		
+		modalConfirm(function(confirm){
+			if(confirm){
+				$.ajax({
+					url : "${cPath}/myLecture/cancleHW/"+hs_no,
+					dataType : "json",
+					method : 'get',
+					success : function(resp){
+						console.log(resp.state);
+						$("#checkHomework").modal('hide');
+						paging(1);
+						
+					},
+					error : function(error){
+						console.log(error);
+					}
+				});
+			}
+		});
+	})
+	
+	submitForm.on("submit", function(event){
+		var method = submitForm.attr("method");
+		var formData = new FormData(submitForm[0]);
+		event.preventDefault();
+		$.ajax({
+			url : "${cPath}/myLecture/homework/submit/"+ht_no,
+			data: formData,
+			contentType : false,
+			processData : false,
+			dataType : "json",
+			method : method,
+			success : function(resp){
+				console.log(resp.state);
+				submitForm[0].reset();
+				paging(1);
+			},
+			error : function(error){
+				console.log(error);
+			}
+		});
+	});
+	
+	btn_update.on("click", function(){
+		$.ajax({
+				url : "${cPath}/myLecture/detail/getHomework/"+ht_no,
+				method : "get",
+				dataType: "json",
+				success : function(homework){
+					$ht_title.val(homework.ht_title).prop("readonly",true);
+					$ht_content.val(homework.ht_content);
+					$ht_submit.val(homework.ht_submit);
+					$("#createModal").modal('show');
+					isUpdate = true;
+				},
+				error : function(err){
+					console.log(err);			
+				}
+			});
+	
+	});
+	
+	$("#btn_modal").on("click",function(){
+		if(isUpdate){
+			uploadForm[0].reset();
+			$ht_title.prop("readonly",false);
+			isUpdate = false;
+		}
+	})
+	
+	btn_upload.on("click", function(){
+		uploadForm.submit();
+	});
+	
+	btn_delete.on("click", function(){
+	
+		$("#conf-modal").modal('show');
+		
+		modalConfirm(function(confirm){
+			if(confirm){
+				$.ajax({
+					url : "${cPath}/myLecture/removeHW/"+ht_no,
+					dataType : "json",
+					method : 'get',
+					success : function(resp){
+						console.log(resp.state);
+						paging(1);
+					},
+					error : function(error){
+						console.log(error);
+					}
+				});
+			}
+		});
+	});
+	
+	// 과제 정보 출력
+	$('tbody#listBody').on('click', 'a', function(){
+		ht_no = $(this).prop('id');
+		console.log(ht_no);
+		btn_submit.prop("disabled",false);
+		$.ajax({
+			url : "${cPath}/myLecture/detail/getHomework/"+ht_no,
+			method : "get",
+			dataType: "json",
+			success : function(homework){
+				var tuteeFile = "";
+				if(homework.hs_no && homework.hs_writer == "${loginUser.user_id }"){
+					tuteeFile = '<button type="button" class="btn btn-link pop" data-placement="top" data-content="'+homework.hs_content+'" data-toggle="hover">'+homework.att_filename+'</button><i id="deleteHomework" class="fas fa-times" style="font-size:20px; color:red; margin:1%; cursor:pointer;"></i>';
+					hs_no = homework.hs_no;
+					btn_submit.prop("disabled",true);
+				} 
+				$titleLabel.text(homework.ht_title);
+				$dateLabel.text(homework.ht_date);
+				$submitLabel.text(homework.ht_submit);
+				$homeworkDesc.val(homework.ht_content);
+				$tuteeHomework.html(tuteeFile);
+				$('#checkHomework').modal('show');
+			},
+			error : function(err){
+				console.log(err);			
+			}
+		});
+		
+		$.ajax({
+			url : "${cPath}/myLecture/homework/check/"+ht_no,
+					dataType : "json",
+					method : 'get',
+					success : function(resp){
+						var trTags = [];
+						var trHead = [];
+						if(resp && resp.length > 0){
+							$(resp).each(function(idx, homework){
+								var tr = $("<tr>").prop("id", homework.hs_no);
+								tr.append(
+										$("<td style='text-align:center; vertical-align: middle;'>").html(
+											homework.hs_writer
+										)		
+										, $("<td style='text-align:center; vertical-align: middle;'>").html(
+											"<a href='${cPath}/download.do?what="+homework.att_no+"' id='"+homework.ht_no+"'>"+homework.att_filename+"</a>"
+										)		
+										, $("<td style='text-align:center; vertical-align: middle;'>").html(
+											homework.hs_date
+										)
+									);		
+								trTags.push(tr);
+						});
+					}else{
+						trTags.push(
+						  $("<tr>").append(
+							$("<td>").prop({colspan:3})
+								     .text("제출한 튜티가 없습니다.")
+						  )
+						);
+					}
+					chekcedBody.html(trTags);
+					},
+					error : function(error){
+						
+					}
+		});
+	}).css({cursor : "pointer"});
+	
+	$('.pop').popover();
+	$('.pop').popover({ trigger: "hover" });
+
+	uploadForm.on("submit", function(event){
+		var method = uploadForm.attr("method");
+		var queryString = uploadForm.serialize();
+		event.preventDefault();
+		
+		// update part
+		if(isUpdate){
+			$.ajax({
+				url : "${cPath}/myLecture/detail/modifyHW/"+ht_no,
+				data: queryString,
+				dataType : "json",
+				method : method,
+				success : function(resp){
+					alert(resp.state);
+					paging(1);
+					uploadForm[0].reset();
+				},
+				error : function(error){
+					console.log(error);
+				}
+			});
+		}else{
+			$.ajax({
+				url : "${cPath}/myLecture/detail/uploadHW",
+				data: queryString,
+				dataType : "json",
+				method : method,
+				success : function(resp){
+					alert(resp.state);
+					paging(1);
+					uploadForm[0].reset();
+				},
+				error : function(error){
+					console.log(error);
+				}
+			});
+		}		
+	});
+
+	searchForm.on("submit", function(event){
+		var queryString = $(this).serialize();
+		event.preventDefault();
+			$.ajax({
+				url : "",
+				data : queryString,
+				dataType : "json",
+				method : 'post',
+				success : function(resp) {
+					let hwList = resp.dataList;
+					var trTags = [];
+					var trHead = [];
+					if(hwList && hwList.length > 0){
+						$(hwList).each(function(idx, homeWork){
+							var tr = $("<tr>").prop("id", homeWork.ht_no);
+							var check = "";
+							var user = "${loginUser.user_id}"
+							if(homeWork.hs_no && user == homeWork.hs_writer){
+								check = '<i class="fas fa-check" style="font-size:20px; color:#2da84e; margin:1%"></i>';
+							}
+							tr.append(
+									$("<td style='text-align:center; vertical-align: middle;'>").html(
+										homeWork.rnum
+									)		
+									, $("<td style='text-align:center; vertical-align: middle;'>").html(
+										"<a href='#' id='"+homeWork.ht_no+"'>"+homeWork.ht_title+"</a>"+
+										check
+									)		
+									, $("<td style='text-align:center; vertical-align: middle;'>").html(
+										homeWork.ht_date
+									)
+									, $("<td style='text-align:center; vertical-align: middle; color : orange;'>").html(
+										homeWork.ht_submit
+									)
+								);		
+							trTags.push(tr);
+						});
+					}else{
+						trTags.push(
+						  $("<tr>").append(
+							$("<td>").prop({colspan:4})
+								     .text("강의에 해당하는 과제가 없습니다.")
+						  )
+						);
+					}
+					listBody.html(trTags);
+					pagingArea.html(resp.pagingHTMLForBS);
+				},
+				error : function(errorResp) {
+					console.log(errorResp.status + ", "
+							+ errorResp.responseText)
+				}
+		});
+	});
+	
+	paging(1);
+
+
+</script>
+	
+			

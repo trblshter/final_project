@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.ILectureDAO">
+	<sql id="searchFrag">
+		<where>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+				C.CTGY_NO = B.CTGY_NO AND CTGY_NAME = #{searchWord} AND LT_SECRET = 0
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isBlank(searchWord)">
+				C.CTGY_NO = B.CTGY_NO AND LT_SECRET = 0
+			</if>
+		</where>
+	</sql>
+	
+<!-- 	<sql id="Frag"> -->
+<!-- 		<where> -->
+<!-- 			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)"> -->
+<!-- 				B.LT_NO = C.LT_NO AND  -->
+<!-- 				C.LT_NO = D.BO_NO AND  -->
+<!-- 				D.CTGY_NO = E.CTGY_NO AND  -->
+<!-- 				RNUM BETWEEN #{startRow} AND #{endRow} -->
+<!-- 			</if> -->
+<!-- 			<if test="@org.apache.commons.lang3.StringUtils@isBlank(searchWord)"> -->
+<!-- 				RNUM BETWEEN #{startRow} AND #{endRow} -->
+<!-- 			</if> -->
+<!-- 		</where> -->
+<!-- 	</sql> -->
+	
+	<resultMap type="LecturetutorVO" id="lectureMap" autoMapping="true">
+		<id property="lt_no" column="LT_NO" />
+		<collection property="categoryList" ofType="CategoryVO" autoMapping="true"/>
+	</resultMap>
+
+	<select id="selectLectureList" resultMap="lectureMap" parameterType="pagingVO">
+		      
+		SELECT B.*
+        FROM
+        (
+        SELECT ROWNUM RNUM, A.*
+		FROM
+		(
+                SELECT 
+					LT_NO, LT_WRITER, TO_CHAR(LT_DATE, 'YYYY-MM-DD') LT_DATE, LT_TITLE, CTGY_NAME,
+					LT_PRICE, LT_CONTENT, LT_SECRET,
+					LT_COMPLETED, LT_CLASS_COM, LT_VIEWS,
+					LT_IMAGE
+				FROM HS_LECTURE_TUTOR OUTER LEFT JOIN HS_CATEGORIES C ON (LT_NO = BO_NO), HS_CATEGORY B
+				<include refid="searchFrag"/>
+				ORDER BY LT_NO DESC
+            ) A
+		) B
+		    WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+	</select>
+	   
+	<select id="selectLectureCount" resultType="long">
+		SELECT COUNT(DISTINCT LT_NO)
+		FROM HS_LECTURE_TUTOR OUTER LEFT JOIN HS_CATEGORIES C ON (LT_NO = BO_NO), HS_CATEGORY B
+		<include refid="searchFrag"/>
+		AND LT_SECRET = 0
+	</select>
+	
+	<resultMap type="LectureTutorVO" id="categoryMap" autoMapping="true">
+		<id column="LT_NO" property="lt_no"/>
+		<collection property="categoryList" ofType="CategoryVO" autoMapping="true"></collection>
+	</resultMap>
+	<select id="retrieveLectureTutor" parameterType="String" resultMap="categoryMap">
+		SELECT
+		    LT_NO, LT_WRITER, TO_CHAR(LT_DATE, 'YYYY-MM-DD') LT_DATE, CTGY_NAME,
+		    LT_TITLE, LT_PRICE, LT_CONTENT,
+		    LT_SECRET, LT_COMPLETED, LT_CLASS_COM, 
+		    LT_VIEWS, LT_IMAGE, C.CTGY_NO,
+		    LT_RECRUIT, LT_TURN
+		FROM
+		    HS_LECTURE_TUTOR A, HS_CATEGORIES B, HS_CATEGORY C
+		WHERE
+            A.LT_NO = B.BO_NO
+        AND
+            B.CTGY_NO = C.CTGY_NO
+        AND
+		    LT_NO = #{lt_no}
+	</select>
+	
+	<insert id="insertLecture">
+		<selectKey resultType="String" keyProperty="lt_no" order="BEFORE">
+			SELECT 'LT'||LPAD(TO_NUMBER(NVL(MAX(SUBSTR(LT_NO, 3)),0))+1, 6, '0') FROM HS_LECTURE_TUTOR
+		</selectKey>
+		INSERT INTO HS_LECTURE_TUTOR (
+		    LT_NO, LT_WRITER, LT_DATE,
+		    LT_TITLE, LT_PRICE, LT_CONTENT,
+		   	LT_IMAGE, LT_START_DATE, LT_END_DATE,
+		   	LT_TURN, LT_RECRUIT
+		   	<if test="lt_completed != null">
+		   		, LT_COMPLETED
+		   	</if>
+		   	
+		) VALUES (
+    		#{lt_no}, #{lt_writer}, SYSDATE,
+		    #{lt_title}, #{lt_price}, #{lt_content},
+		    #{lt_image, jdbcType=BLOB}, #{lt_start_date}, #{lt_end_date},
+		    #{lt_turn}, #{lt_recruit}
+		    <if test="lt_completed != null">
+		    	,#{lt_completed}
+		    </if>
+		)
+	</insert>
+	
+	<update id="incrementHit">
+		UPDATE 
+			HS_LECTURE_TUTOR 
+		SET
+			LT_VIEWS = LT_VIEWS + 1
+		WHERE LT_NO = #{lt_no}
+	</update>
+	
+	<update id="updateLecture">
+		UPDATE
+			HS_LECTURE_TUTOR
+		SET
+			LT_SECRET = 1
+		WHERE
+			LT_NO = #{lt_no}
+	</update>
+	
+	<update id="updateLectureTutor">
+			UPDATE
+			HS_LECTURE_TUTOR
+		SET
+			LT_COMPLETED = 1
+		WHERE
+			LT_NO = #{lt_no}
+	</update>
+			
+</mapper>

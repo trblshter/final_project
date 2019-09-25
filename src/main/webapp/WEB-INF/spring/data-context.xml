@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+
+<!-- 	스프링과 ORM 연동 -->
+<!-- 	1. Connection 생성에 사용할 DataSource 등록 :  id="dataSource" -->
+		<util:properties id="dbInfo" location="classpath:kr/or/ddit/db/dbInfo.properties" />
+		
+		<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" 
+			p:driverClassName="#{dbInfo.driverClassName}"
+			p:url="#{dbInfo['url']}"
+			p:username="#{dbInfo['username']}"
+			p:password="#{dbInfo['password']}"
+			p:initialSize="#{dbInfo['initSize']}"
+			p:maxWaitMillis="#{dbInfo['maxWait']}"
+			p:maxTotal="#{dbInfo['maxTotal']}"
+		/>
+	
+		<!-- platform based transaction managing -->
+		<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" 
+			p:dataSource-ref="dataSource"
+		/>
+	
+<!-- 2. SqlSessionFactory 를 생성하기 위한 전략 빈 등록 -->
+<!-- 3. mybatis 컨텍스트가 생성될수 있는 환경 설정. -->
+		<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" 
+			p:dataSource-ref="dataSource"
+			p:typeAliasesPackage="kr.or.ddit.vo"
+			p:mapperLocations="classpath:kr/or/ddit/mybatis/mappers/*.xml"
+		/>
+<!-- 4-1. DAO의 구현체를 직접 생성하고, 해당 DAO 에서 SqlSessonFactoryBean을 주입. -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" 
+		c:sqlSessionFactory-ref="sqlSessionFactory"
+	/>
+
+<!-- 4-2. MybatisScanner 를 활용하여, DAO 의 매퍼 프록시를 직접 생성하는 방식. -->
+<!--      스캔의 대상이 되는 인터페이스에 	@Repository 를 사용하여 스캔될수 있도록.. -->
+	<mybatis-spring:scan base-package="kr.or.ddit.*.dao"
+		annotation="org.springframework.stereotype.Repository"
+	/>
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

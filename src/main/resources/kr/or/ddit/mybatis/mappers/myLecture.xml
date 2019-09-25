@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.IMyLectureDAO">
+
+	<!-- TODO 튜터 모집 중 상태 필터링  -->
+	<select id="selectMyLectureCountForTutor" resultType="long">
+		SELECT COUNT(*)
+		FROM HS_LECTURE_TUTOR
+		WHERE LT_WRITER = #{user_id}
+	</select>
+	
+	<!-- TODO 튜터 모집 중 상태 필터링  -->
+	<select id="selectMyLectureListForTutor" resultType="LecturetutorVO">
+		SELECT  B.RNUM, B.LT_NO, B.LT_WRITER, B.LT_DATE, B.LT_TITLE, B.LT_PRICE, B.LT_CONTENT
+			,B.LT_SECRET, B.LT_COMPLETED, B.LT_CLASS_COM, B.LT_VIEWS, 
+			TO_CHAR(B.LT_START_DATE, 'YYYY-MM-DD') LT_START_DATE, 
+			TO_CHAR(B.LT_END_DATE, 'YYYY-MM-DD') LT_END_DATE
+		FROM (
+		        SELECT ROWNUM RNUM, A.*
+		        FROM ( 
+					        SELECT  L.*
+					        FROM  HS_LECTURE_TUTOR L
+					        WHERE L.LT_WRITER = #{searchWord}
+		                    ORDER BY LT_NO DESC
+					  )A   
+		)B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow} 
+	</select>
+
+	<select id="selectMyLectureList" resultType="LecturetutorVO">
+		SELECT B.*
+		   FROM (
+		        SELECT ROWNUM RNUM, A.LT_NO, A.LT_WRITER, A.LT_DATE, A.LT_TITLE, A.LT_PRICE, A.LT_CONTENT
+		                ,A.LT_SECRET, A.LT_COMPLETED, A.LT_CLASS_COM, A.LT_VIEWS, 
+		                TO_CHAR(A.LT_START_DATE, 'YYYY-MM-DD') LT_START_DATE, 
+		                TO_CHAR(A.LT_END_DATE, 'YYYY-MM-DD') LT_END_DATE
+		                    FROM ( 
+		                        SELECT L.*
+		                        FROM HS_LECTURE_TUTOR L
+		                        WHERE L.LT_NO IN (
+		                            SELECT  LT_NO 
+		                            FROM HS_APPL 
+		                            WHERE APPL_USER = #{searchWord} AND PAYMENT_OK = 1	    
+		                    )
+		                    ORDER BY LT_NO DESC
+		                  )A
+		                )B 
+        WHERE RNUM BETWEEN #{startRow} AND #{endRow} 
+	</select>
+	
+	<select id="selectMyLectureCount" resultType="long">
+	SELECT COUNT(*)
+        FROM HS_LECTURE_TUTOR H
+        WHERE H.LT_NO IN (
+            SELECT  LT_NO 
+            FROM HS_APPL
+            WHERE APPL_USER = #{user_id} AND PAYMENT_OK = 1
+		    )  
+	</select>
+	
+	<select id="selectMyLecture" resultType="LecturetutorVO">
+		SELECT  A.LT_NO,   A.LT_WRITER,    A.LT_DATE, 
+                 A.LT_TITLE,  A.LT_PRICE,  A.LT_IMAGE,
+                 A.LT_TURN, C.CTGY_NAME,
+                TO_CHAR(A.LT_START_DATE,'YYYY-MM-DD') lt_start_date, 
+                TO_CHAR(A.LT_END_DATE,'YYYY-MM-DD') lt_end_date
+		FROM HS_LECTURE_TUTOR A LEFT OUTER JOIN HS_CATEGORIES B ON (A.LT_NO =  B.BO_NO) 
+		                    LEFT OUTER JOIN HS_CATEGORY C ON (C.CTGY_NO = B.CTGY_NO)
+		WHERE A.LT_NO = #{lt_no}
+	</select>
+	
+	<select id="selectMyLectureSchedule" resultType="ScheduledVO">
+		SELECT *
+		FROM HS_SCHEDULE S
+		WHERE S.LT_NO IN (
+		    SELECT LT_NO
+		    FROM  HS_APPL
+		    WHERE APPL_USER = #{user_id}
+		    ) 	
+	</select>
+	
+	<select id="selectMyLectureScheduleTutor" resultType="ScheduledVO">
+		SELECT 
+			SC_NO, SC_WRITER, LT_NO,
+		    SC_TURN, SC_STARTDAY, SC_ENDDAY,
+		    SC_CONTENT, SC_TITLE, SC_BGCOLOR,
+		    SC_TCOLOR
+		FROM 
+			HS_SCHEDULE
+		WHERE
+			SC_WRITER = #{sc_writer}
+		
+	</select>
+	
+	<select id="selectMyFriends" resultType="TeamVO">
+		SELECT *
+		FROM HS_TEAM
+		WHERE LT_NO = #{lt_no} 
+	</select>
+	
+	<select id="selectMyFriendInfo" resultType="UserVO">
+		SELECT *
+	    FROM HS_USER
+	    WHERE USER_ID = #{user_id}
+	</select>
+	
+	<select id="selectMyLectureProgress" resultType="LecturetutorVO">
+		SELECT T.LT_TURN, MAX(L.LECTURE_TURN) LECTURE_TURN 
+	    FROM HS_LECTURE_TUTOR T
+	        LEFT OUTER JOIN HS_LECTURE L ON ( T.LT_NO = L.LT_NO)
+	    WHERE T.LT_NO = #{lt_no}
+	    GROUP BY T.LT_TURN
+	</select>
+	
+	<select id="selectMyLectureAttachList" resultType="AttachmentVO">
+		SELECT *
+		FROM (
+		    SELECT ROWNUM RNUM ,B.*
+		            FROM(
+		                SELECT  A.*
+		                FROM HS_ATTACHMENT A
+		                WHERE A.LT_NO = #{searchWord}
+		                ORDER BY ATT_NO DESC
+		            ) B
+		    )
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectMyLectureAttachCount" resultType="long">
+		SELECT COUNT(*)
+		FROM HS_ATTACHMENT
+		WHERE LT_NO = #{searchWord}
+	</select>
+	
+	<select id="selectAttachment" resultType="AttachmentVO">
+		SELECT *
+		FROM HS_ATTACHMENT 
+		WHERE  ATT_NO = #{att_no}
+	</select>
+	
+	<select id="selectMyLectureSchedulebyLecture" resultType="ScheduledVO">
+		SELECT *
+		FROM HS_SCHEDULE
+		WHERE LT_NO = #{lt_no}
+	</select>
+	
+	<select id="selectHwTutorCount" resultType="long">
+		SELECT COUNT(*)
+		FROM HS_HW_TUTOR
+		WHERE LECTURE_NO = #{lt_no}
+	</select>
+	
+	<select id="selectHwTutorList" resultType="HwTutorVO">
+		 SELECT *
+		FROM (
+		    SELECT ROWNUM RNUM ,B.*
+		            FROM(
+		                SELECT   TO_NUMBER(A.ht_no) HT_NO,    A.lecture_no,    A.ht_title,
+                                    A.ht_content,    TO_CHAR(A.ht_submit, 'YYYY-MM-DD') ht_submit, 
+                                    TO_CHAR( A.ht_date, 'YYYY-MM-DD') ht_date, D.HS_NO, D.HS_WRITER
+		                FROM HS_HW_TUTOR A LEFT OUTER JOIN HS_HW_STUDENT D ON (A.HT_NO = D.HT_NO)
+		                WHERE A.LECTURE_NO = #{searchWord}
+		                ORDER BY HT_NO DESC 
+		            ) B
+		    )
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectHomeworkByTutor" resultType="HwTutorVO">
+		SELECT A.HT_NO, A.LECTURE_NO, A.HT_TITLE,
+               A.HT_CONTENT,  TO_CHAR(A.HT_SUBMIT, 'YYYY-MM-DD') HT_SUBMIT, 
+               TO_CHAR(A.HT_DATE, 'YYYY-MM-DD') HT_DATE,B.HS_NO, B.HS_WRITER, B.HS_CONTENT, C.ATT_FILENAME
+         FROM HS_HW_TUTOR A LEFT OUTER JOIN HS_HW_STUDENT B ON (A.HT_NO = B.HT_NO)
+         	LEFT OUTER JOIN HS_ATTACHMENT C ON (B.HS_NO = C.LT_NO)
+         WHERE A.HT_NO = #{ht_no} 
+	</select>
+	
+	<select id="selectSubmittedHomeworkList" resultType="HwstudentVO">
+		SELECT
+		    HS_NO,  HS_WRITER,  HT_NO,
+		    HS_CONTENT,  TO_CHAR(HS_DATE,'YYYY-MM-DD') HS_DATE, B.ATT_FILENAME, B.ATT_NO
+		FROM   HS_HW_STUDENT A LEFT OUTER JOIN HS_ATTACHMENT B ON (A.HS_NO = B.LT_NO)
+		WHERE HT_NO = #{ht_no}
+	</select>
+	
+	<insert id="insertSharedFile">
+		<selectKey resultType="Integer" keyProperty="att_no" order="BEFORE">
+			SELECT ATTACHMENT_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO hs_attachment (
+		    ATT_NO,   ATT_FILENAME,    ATT_SAVENAME,
+		    ATT_MIME,    ATT_FILESIZE,    ATT_FANCYSIZE,
+		    LT_NO,    ATT_DESC
+		) VALUES (
+		    #{att_no},   #{att_filename}, #{att_savename},
+		    #{att_mime},    #{att_filesize},  #{att_fancysize},
+		    #{lt_no},    #{att_desc,jdbcType=VARCHAR} 
+		)
+	</insert>
+	
+	<insert id="insertHomeWorkByTutor">
+	<selectKey resultType="String" keyProperty="ht_no" order="BEFORE">
+			SELECT TO_CHAR(HOMEWORK_SEQ.NEXTVAL) FROM DUAL
+	</selectKey>
+		INSERT INTO HS_HW_TUTOR (
+	    HT_NO,    LECTURE_NO,    HT_TITLE,
+	    HT_CONTENT,    HT_SUBMIT,    HT_DATE
+		) VALUES (
+		    #{ht_no},   #{lecture_no},    #{ht_title},
+		    #{ht_content},    #{ht_submit},  sysdate
+		)
+	</insert>
+	
+	<insert id="insertHomeworkByTutee">
+		<selectKey resultType="String" keyProperty="hs_no" order="BEFORE">
+			SELECT TO_CHAR(HW_STD_SEQ.NEXTVAL) FROM DUAL
+		</selectKey>
+		 INSERT INTO HS_HW_STUDENT (
+	               HS_NO,    HS_WRITER,     HT_NO,
+	               HS_CONTENT,    HS_DATE
+	           ) VALUES (
+	               #{hs_no} ,  #{hs_writer},  #{ht_no},
+	               #{hs_content},   SYSDATE
+	           )
+	</insert>
+	
+	<update id="updateHomeworkBytutor">
+		UPDATE HS_HW_TUTOR
+	    SET
+	        HT_CONTENT = #{ht_content},
+	        HT_SUBMIT = #{ht_submit}
+		WHERE
+		    HT_NO = #{ht_no}
+	</update>
+	
+	<delete id="deleteHomeworkByTutor">
+		DELETE FROM HS_HW_TUTOR
+		WHERE
+		    HT_NO = #{ht_no}
+	</delete>
+	
+	<delete id="deleteHomeworkByTutee">
+		DELETE FROM HS_HW_STUDENT
+		WHERE 
+			HS_NO = #{hs_no}
+	</delete>
+	
+	
+	
+	
+
+</mapper>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.attach.dao.IAttachDAO">
+	<insert id="insertAttach" parameterType="AttachmentVO">
+		insert into hs_attachment (
+			att_no,
+			<if test="bo_no!=null">
+				bo_no, 
+			</if> 
+			<if test="msg_no!=null">
+				msg_no, 
+			</if>
+			att_filename,
+			att_savename, att_mime, att_filesize,
+			att_fancysize
+		)
+		values( attachment_seq.nextval ,
+			<if test="bo_no!=null">
+				#{bo_no},
+			</if> 
+			<if test="msg_no!=null">
+				#{msg_no},
+			</if>
+				#{att_filename},
+					#{att_savename}, #{att_mime}, #{att_filesize},
+					#{att_fancysize} )
+	</insert>
+	<select id="selectAttach" resultType="AttachmentVO">
+		select att_no, bo_no, att_filename,
+				att_savename, att_mime, att_filesize,
+				att_fancysize
+		  from hs_attachment
+		 where att_no = #{att_no}
+	</select>
+	
+	<!-- view에서 필요한 정보들을 주는 곳. -->
+	<select id="selectBoAttach" resultType="AttachmentVO">
+		select att_no, bo_no, att_filename,
+				att_savename, att_mime, att_filesize,
+				att_fancysize
+		  from hs_attachment
+		 where bo_no = #{bo_no}
+	</select>
+	
+	<select id="selectAttachByLtNo" resultType="AttachmentVO">
+		SELECT
+	    ATT_NO,    BO_NO,    ATT_FILENAME,
+	    ATT_SAVENAME,    ATT_MIME,    ATT_FILESIZE,
+	    ATT_FANCYSIZE,    ATT_DOWNLOAD,    MSG_NO,
+	    LT_NO,    ATT_DESC
+	    FROM
+	    HS_ATTACHMENT
+	    WHERE 
+	    LT_NO = #{lt_no}
+	</select>
+	
+	<update id="incrementDownCount" parameterType="int">
+		update hs_attachment
+		   set
+		  att_download = att_download + 1
+		 where att_no = #{att_no}
+	</update>
+	
+	<delete id="deleteAttach" parameterType="int">
+		delete 
+		from hs_attachment 
+		where att_no = #{att_no}
+	</delete>
+	
+	<delete id="deleteAttachByLtNo">
+		DELETE
+		FROM HS_ATTACHMENT
+		WHERE LT_NO = #{ltOrHs_no}
+	</delete>
+	
+	
+	
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.3.xsd">
+
+<!-- 	스키마 종류 : beans, c, p, context -->
+<!-- 	컨테이너의 계층 구조를 통해 중복 빈 제거 -->
+<!-- 	DispatcherServlet 에 의해 생성되는 하위 컨테이너들에서 -->
+<!-- 	공통적으로 사용할 공통 빈(dao, service...., 웹에 종속되지 않는 legacy bean)들을 등록. -->
+	
+	<util:properties id="appInfo" location="classpath:kr/or/ddit/appInfo.properties" />
+<!-- 상위컨테이너 : service, dao.. -->
+<!-- 하위컨테이너 : controller, rest controller, controller advice -->
+	<context:component-scan base-package="kr.or.ddit" use-default-filters="false">
+		<context:include-filter type="annotation" 
+			expression="org.springframework.stereotype.Component"/>	
+			
+<!--	<context:include-filter type="annotation"  -->
+<!--		expression="org.springframework.stereotype.Repository"/>	 -->
+<!--	<context:include-filter type="annotation"  -->
+<!--		expression="org.springframework.stereotype.Service"/>	 -->
+
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+	
+	
+	<!-- 	파일 업로드 처리를 위한 전략 등록 -->
+<!-- 	1. servlet 3.0 -->
+<!-- 	   1) DispatcherServlet 에 multipart-config 설정(web.xml). -->
+<!-- 	   2) StandardServletMultipartResolver 를 등록. -->
+<!-- 	2. servlet 2.5 -->
+<!-- 	   1) commons-fileupload 를 빌드패스에 추가 -->
+<!-- 	   2) CommonsMultipartResolver 를 등록. -->
+<!-- 	주의! id="multipartResolver" -->
+<!-- 	<bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver"></bean> -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" 
+		p:defaultEncoding="UTF-8"
+		p:maxInMemorySize="#{10*1024}"
+		p:maxUploadSize="#{100*1024*1024}"
+		p:maxUploadSizePerFile="#{10*1024*1024}"
+	/>
+	
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

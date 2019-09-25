@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.comment.dao.ICommentDAO">
+	<!-- 전체 가져오기 -->
+	<select id="listAll" resultType="CommentVO" parameterType="String">
+		SELECT
+			cm_no,
+			cm_writer,
+			bo_no,
+			cm_content,
+			to_char(cm_date,'yyyy-MM-dd') cm_date,
+			cm_parent
+		FROM
+			hs_comment
+		WHERE
+			bo_no = #{bo_no}
+		order by cm_no desc
+	</select>
+	
+	<!-- 댓글 추가 -->
+	<insert id="insertComment">
+		INSERT INTO HS_COMMENT(
+			cm_no,
+			cm_writer,
+			bo_no,
+			cm_content,
+			cm_date
+		) VALUES(
+			(SELECT (NVL( MAX(CM_NO), 0)+1) FROM HS_COMMENT) , 
+				#{cm_writer},
+				#{bo_no},
+				#{cm_content},
+				sysDate	
+		)
+	</insert>
+	<!-- 수정 -->
+	<update id="updateComment">
+		UPDATE HS_COMMENT SET 
+			cm_content = #{cm_content},
+			cm_date = sysDate
+		WHERE cm_no = #{cm_no}
+	</update>
+	<!-- 삭제 -->	
+	<delete id="deleteComment">
+		DELETE FROM HS_COMMENT
+		WHERE cm_no = #{cm_no}
+	</delete>
+	<select id="selectComment" resultType="CommentVO" parameterType="Long">
+		SELECT
+			cm_no,
+			cm_writer,
+			bo_no,
+			cm_content,
+			to_char(cm_date,'yyyy-MM-dd') cm_date,
+			cm_parent
+		FROM
+			hs_comment
+		WHERE
+			cm_no = #{cm_no}
+	</select>
+</mapper>

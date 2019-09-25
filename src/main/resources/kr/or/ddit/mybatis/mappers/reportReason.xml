@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IReportReasonDAO">
+	<select id="selectRRCount" resultType="long">
+		select count(*)
+		  from hs_report_reason
+	</select>
+	
+	<select id="selectRRList" parameterType="PagingVO" resultType="ReportreasonVO">
+		select B.*
+		 from(
+		select rownum rnum, A.*
+		  from(
+		        select rr_no,rr_writer,rr_recipient,
+		            	rr_reason,to_char(rr_date, 'YYYY-MM-DD') rr_date,
+		            	rr_content,rr_image,rr_ok
+		         from hs_report_reason
+		        order by rr_no desc
+		  )A
+		)B
+		<![CDATA[
+			WHERE rnum between #{startRow} and #{endRow}
+		]]>
+	</select>
+	
+	<select id="selectReportReason" parameterType="int" resultType="ReportreasonVO">
+		select RR_NO, RR_WRITER, RR_RECIPIENT, RR_REASON, RR_CONTENT, to_char(rr_date, 'YYYY-MM-DD') rr_date, RR_IMAGE, RR_OK, rrs_name
+		  from hs_report_reason inner join hs_report_reasons on (rrs_no = rr_reason)
+		 where rr_no = #{rr_no}
+	</select>
+	
+	<delete id="deleteReport" parameterType="int">
+		delete from hs_report_reason
+    	 where rr_no = #{rr_no}
+	</delete>
+	
+	<insert id="insertReport" parameterType="ReportreasonVO">
+		insert into hs_report_reason
+		(
+		        rr_no,rr_writer,rr_recipient,rr_reason,
+		        rr_content,rr_image
+		)
+			values
+		(
+		        report_reason_seq.nextval, #{rr_writer}, #{rr_recipient}, #{rr_reason},
+		        #{rr_content}, #{rr_image,jdbcType=BLOB}
+		)
+	</insert>
+</mapper>

@@ -1,0 +1,62 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+    
+    <div class="container">
+    
+<div id="titleBar">
+		<h1 class="mb-3 mt-4">나의 강의</h1>
+	</div>
+	<form id="searchForm">
+<%-- 			<input type="hidden" name="searchType" value="${pagingVO.searchType}" /> --%>
+			<input type="hidden" name="searchWord" value="" /><!-- 세션으로 바꿔줘야됨 -->
+			<input type="hidden" name="page" />
+	</form>
+		
+	<table class="table table-striped w-100">
+		<thead class="head" style="text-align: center;" id="head">
+			<tr style="width: 100%;">
+				<th style="width: 10%; text-align: center; ">번호</th>
+				<th style="width: 30%; text-align: center;">강의명</th>
+				<th style="width: 10%; text-align: center;">상태</th>
+				<th style="width: 10%; text-align: center;">입장</th>
+				<th style="width: 40%; text-align: center;">수강기간</th>
+			</tr>
+		</thead>
+		<tbody id="listBody">
+			<c:set var="list" value="${pagingVO.dataList }" />
+			<c:if test="${not empty list }">
+				<c:forEach var="myLecture" items="${list }">
+					<tr id="${myLecture.lt_no }">
+						<td style="text-align: center; vertical-align: middle;">
+							${myLecture.rnum }
+						</td>
+						<td style="text-align: center; vertical-align: middle;">
+							<a href="${pageContext.request.contextPath}/myLecture/detail/${myLecture.lt_no }">${myLecture.lt_title }</a>
+						</td>
+						<td style="text-align: center; vertical-align: middle;">
+							<c:if test="${myLecture.lt_class_com eq 0}">
+								진행 중
+							</c:if>
+							<c:if test="${myLecture.lt_class_com eq 1}">
+								종료
+							</c:if>
+						</td>
+						<td style="text-align: center; vertical-align: middle;">
+							<a href="${pageContext.request.contextPath}/room/${myLecture.lt_no}"
+								class="btn btn-dark" id="createLecture" >입장</a>
+						</td>
+						<td style="text-align: center; vertical-align: middle;">
+							${myLecture.lt_start_date } ~ ${myLecture.lt_end_date } 
+						</td>
+					</tr>
+				</c:forEach>
+			</c:if>
+			<c:if test="${empty list }">
+				<tr>
+					<td colspan="5">신청한 강의 목록이 없습니다.</td>					
+				</tr>
+			</c:if>
+		</tbody>
+	</table>
+	<div id="pagingArea">${pagingVO.pagingHTMLForBS }</div>
+	</div>		

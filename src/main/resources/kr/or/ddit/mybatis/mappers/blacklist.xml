@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.admin.dao.IBlacklistDAO">
+	<select id="selectBlackCount" resultType="long">
+		select count(*)
+		  from hs_blacklist
+			<trim prefix="WHERE" prefixOverrides="AND">
+				<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+					and bl_id like '%'||#{searchWord}||'%'
+				</if>
+			</trim>
+	</select>
+	<select id="selectBlackList" parameterType="PagingVO" resultType="BlacklistVO">
+		select B.*
+		 from(
+		select rownum rnum, A.*
+		  from(
+		       select bl_id, to_char(bl_date, 'YYYY-MM-DD') bl_date, bl_reason
+  				 from hs_blacklist
+		        order by bl_date desc
+		  )A
+		)B
+		<![CDATA[
+			WHERE rnum between #{startRow} and #{endRow}
+		]]>
+		<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+			and bl_id like '%'||#{searchWord}||'%'
+		</if>
+	</select>
+	<select id="selectBlack" parameterType="string" resultType="BlacklistVO">
+		select bl_id, to_char(bl_date, 'YYYY-MM-DD') bl_date, bl_reason
+  		  from hs_blacklist
+  		 where bl_id = #{bl_id}
+	</select>
+	<insert id="insertBlack" parameterType="BlacklistVO">
+		insert into hs_blacklist 
+				(bl_id, bl_date, bl_reason)
+    		values 
+    			(#{bl_id}, sysdate, #{bl_reason})
+	</insert>
+	<delete id="deleteBlack" parameterType="string">
+		delete from hs_blacklist
+		 where bl_id = #{bl_id}
+	</delete>
+</mapper>

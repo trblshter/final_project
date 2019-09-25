@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.payment.dao.IPaymentDAO">
+	<insert id="insertPayment">
+		<selectKey resultType="integer" keyProperty="payment_no" order="BEFORE">
+			SELECT payment_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO hs_payment (
+			payment_no, partner_order_id, cid, tid, total,
+			tax_free, vat, payment_method_type, approved_at, partner_user_id
+		) VALUES (
+			#{payment_no}, #{partner_order_id}, #{cid}, #{tid}, #{total},
+			#{tax_free}, #{vat}, #{payment_method_type}, sysdate, #{partner_user_id}
+		)
+	</insert>
+	<select id="selectPayCount" resultType="long">
+		select count(*)
+		  from hs_payment
+		 <if test="searchWord != null">
+		 	where partner_user_id = #{searchWord }
+		 </if>
+	</select>
+	<select id="selectPayList" parameterType="PagingVO" resultType="PaymentVO">
+		select B.*
+		 from(
+			select rownum rnum, A.*
+			  from(
+			        select payment_no, partner_order_id, cid, tid, total, tax_free, vat, payment_method_type, status,
+			        		to_char(approved_at, 'YYYY-MM-DD') approved_at, partner_user_id, to_char(c.lt_start_date, 'YYYY-MM-DD') lt_start_date,
+       						c.lt_no, c.lt_writer, c.lt_title, d.user_name
+			  		  from hs_payment a inner join hs_appl b on (partner_order_id = appl_no)
+                                    left outer join hs_lecture_tutor c on (c.lt_no = b.lt_no)
+                                    left outer join hs_user d on (user_id = lt_writer)
+			         <if test="searchWord != null">
+					 	where partner_user_id = #{searchWord }
+					 </if>
+			         order by approved_at desc
+			)A
+		)B
+		<![CDATA[
+			WHERE rnum between #{startRow} and #{endRow}
+		]]>
+	</select>
+	
+	<resultMap type="PaymentVO" id="payMap" autoMapping="true">
+      <id property="payment_no" column="payment_no" />
+      <collection property="categoryList" javaType="java.util.List"
+      		ofType="CategoryVO" autoMapping="true">
+         <id property="ctgy_no" column="ctgy_no" />
+      </collection>
+   	</resultMap>
+	<select id="selectPay" parameterType="int" resultMap="payMap">
+		select payment_no, partner_order_id, cid, tid, total, tax_free, vat, payment_method_type, to_char(approved_at, 'YYYY-MM-DD') approved_at, partner_user_id,
+        		c.lt_no, c.lt_writer, c.lt_title, d.user_name, f.ctgy_name
+		  from hs_payment a inner join hs_appl b on (PARTNER_ORDER_ID = appl_no)
+                            inner join hs_lecture_tutor c on (c.lt_no = b.lt_no)
+                            left outer join hs_user d on (user_id = lt_writer)
+                            right outer join hs_categories e on (bo_no = b.lt_no)
+                            inner join hs_category f on (e.ctgy_no = f.ctgy_no)
+		 where payment_no = #{payment_no}
+		 order by approved_at desc
+	</select>
+	
+</mapper>

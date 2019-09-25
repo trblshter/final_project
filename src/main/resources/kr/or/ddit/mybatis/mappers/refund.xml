@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.payment.dao.IRefundDAO">
+	<insert id="insertRefund" parameterType="RefundVO">
+		<selectKey resultType="integer" keyProperty="rf_no" order="BEFORE">
+			select refund_seq.nextval from dual
+		</selectKey>
+		insert into hs_refund (
+			rf_no, payment_no, canceled_at
+		) values (
+			#{rf_no}, #{payment_no}, sysdate
+		)
+	</insert>
+</mapper>

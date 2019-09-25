@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.appl.dao.IApplDAO">
+	<insert id="insertAppl">
+		<selectKey resultType="integer" keyProperty="appl_no" order="BEFORE">
+			SELECT APPL_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO HS_APPL (
+		    APPL_NO, APPL_USER, LT_NO,
+		    APPL_DATE
+		) VALUES (
+		 	#{appl_no}, #{appl_user,jdbcType=VARCHAR}, #{lt_no,jdbcType=VARCHAR}
+		 	, SYSDATE
+		)
+	</insert>
+	
+	<select id="selectAppl" parameterType="ApplVO" resultType="ApplVO">
+		SELECT 
+			APPL_NO, APPL_USER, a.LT_NO,
+		    to_char(APPL_DATE, 'YYYY-MM-DD') APPL_DATE, lt_title, lt_price
+		FROM
+			HS_APPL a inner join hs_lecture_tutor b on (a.lt_no = b.lt_no)
+		<if test="lt_no != null">
+			where a.lt_no = #{lt_no} and appl_user = #{appl_user}
+		</if>
+		<if test="appl_no != null">
+			where appl_no = #{appl_no}
+		</if>
+	</select>
+	
+	<select id="selectApplCount" resultType="long">
+		select count(*)
+		  from hs_appl
+		 <if test="searchWord != null">
+		 	where appl_user = #{searchWord }
+		 </if>
+	</select>
+	<select id="selectApplList" parameterType="PagingVO" resultType="ApplVO">
+		select B.*
+		 from(
+			select rownum rnum, A.*
+			  from(
+			        select appl_no, appl_user, a.lt_no, to_char(appl_date, 'YYYY-MM-DD') appl_date, payment_ok, lt_recruit,
+			        		lt_title, lt_price, lt_completed, c.user_name,
+                            team_member1, team_member2, team_member3, team_member4
+			  		  from hs_appl a left outer join hs_lecture_tutor b on (a.lt_no = b.lt_no)
+			                		left outer join hs_user c on (b.lt_writer = c.user_id)
+			                		left outer join hs_team d on (d.lt_no = a.lt_no)
+			         <if test="searchWord != null">
+					 	where appl_user = #{searchWord }
+					 </if>
+			         order by appl_date desc
+			)A
+		)B
+		<![CDATA[
+			WHERE rnum between #{startRow} and #{endRow}
+		]]>
+	</select>
+	
+
+</mapper>

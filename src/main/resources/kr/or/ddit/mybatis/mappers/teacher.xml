@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.ITeacherDAO">
+	<sql id="searchFrag">
+		<where>
+			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)">
+				C.CTGY_NO = B.CTGY_NO AND CTGY_NAME = #{searchWord} 
+			</if>
+			<if test="@org.apache.commons.lang3.StringUtils@isBlank(searchWord)">
+				C.CTGY_NO = B.CTGY_NO
+			</if>
+		</where>
+	</sql>
+	
+<!-- 	<sql id="Frag"> -->
+<!-- 		<where> -->
+<!-- 			<if test="@org.apache.commons.lang3.StringUtils@isNotBlank(searchWord)"> -->
+<!-- 				B.LT_NO = C.LT_NO AND  -->
+<!-- 				C.LT_NO = D.BO_NO AND  -->
+<!-- 				D.CTGY_NO = E.CTGY_NO AND  -->
+<!-- 				RNUM BETWEEN #{startRow} AND #{endRow} -->
+<!-- 			</if> -->
+<!-- 			<if test="@org.apache.commons.lang3.StringUtils@isBlank(searchWord)"> -->
+<!-- 				RNUM BETWEEN #{startRow} AND #{endRow} -->
+<!-- 			</if> -->
+<!-- 		</where> -->
+<!-- 	</sql> -->
+	
+	<select id="selectLectureUserList" resultType="LectureUserVO" parameterType="pagingVO">
+		SELECT B.*
+		FROM
+		(
+		    SELECT ROWNUM RNUM, A.*
+		    FROM(
+		        SELECT 
+			        LU_NO, LU_DATE, LU_WRITER,
+				    LU_TITLE, LU_CONTENT, TEAM_NO,
+				    LU_COMPLETED, LU_VIEWS, LU_TUTOR
+		        FROM 
+		        	HS_LECTURE_USER
+		        ORDER BY LU_NO DESC
+		    ) A
+		) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		
+	</select>
+	
+	<select id="selectLectureUserCount" resultType="long">
+		SELECT COUNT(*)
+		FROM HS_LECTURE_USER 
+	</select>
+	
+	<select id="retrieveLectureUser" parameterType="String" resultType="LectureUserVO">
+		SELECT
+		    LU_NO, TO_CHAR(LU_DATE, 'YYYY-MM-DD') LU_DATE, LU_WRITER,
+		    LU_TITLE,LU_CONTENT, TEAM_NO,
+		    LU_COMPLETED, LU_VIEWS, LU_TUTOR
+		FROM
+		    HS_LECTURE_USER 
+		WHERE
+		    LU_NO = #{lu_no}
+	</select>
+
+		<insert id="insertLecture">
+			<selectKey resultType="String" keyProperty="lu_no" order="BEFORE">
+				SELECT 'LU'||LPAD(TO_NUMBER(NVL(MAX(SUBSTR(LU_NO, 3)),0))+1, 6, '0') FROM HS_LECTURE_USER
+			</selectKey>
+			INSERT INTO HS_LECTURE_USER (
+			    LU_NO, LU_DATE, LU_WRITER,
+			    LU_TITLE, LU_CONTENT, TEAM_NO
+			) VALUES (
+			    #{lu_no}, SYSDATE, #{lu_writer},
+			    #{lu_title}, #{lu_content}, #{team_no}
+			)
+		</insert>
+		
+	<update id="updateLectureUser" parameterType="LectureUserVO">
+		UPDATE
+			HS_LECTURE_USER
+		SET
+			LU_TUTOR = #{lu_tutor}
+		WHERE
+			LU_NO = #{lu_no}
+	</update>
+		
+		
+</mapper>

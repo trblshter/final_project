@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:websocket="http://www.springframework.org/schema/websocket"
+	xsi:schemaLocation="http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+<!-- 	RequestMappingHandlerMapping -->
+<!-- 	RequestMappingHandlerAdapter -->
+<!-- 	InternalResourceViewResolver 등록 -->
+	<mvc:annotation-driven />
+	
+<!-- 	하나의 영역을 지원하는 전략이 여러개 등록되는 경우, -->
+<!-- 	order 를 통해 우선순위를 설정해야 함. -->
+<!-- 	주의! InternalResourceViewResolver 의 우선순위는 가장 낮게 설정. -->
+	<bean id="IRVR" class="org.springframework.web.servlet.view.InternalResourceViewResolver" 
+		p:prefix="/WEB-INF/views/"
+		p:suffix=".jsp"
+	/>
+	<bean id="BNVR" class="org.springframework.web.servlet.view.BeanNameViewResolver"
+		p:order="1"
+	/>
+	<bean id="downloadView" class="kr.or.ddit.attach.view.DownloadView" />
+	
+	<bean id="TVR" class="org.springframework.web.servlet.view.tiles3.TilesViewResolver" 
+		p:order="2"
+	/>
+	
+	<bean class="org.springframework.web.servlet.view.tiles3.TilesConfigurer" 
+		p:definitions="classpath:kr/or/ddit/tiles/*.xml"
+		p:preparerFactoryClass="org.springframework.web.servlet.view.tiles3.SpringBeanPreparerFactory"
+	/>
+	
+	<mvc:default-servlet-handler/>
+
+	<context:component-scan base-package="kr.or.ddit" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+		<context:include-filter type="annotation" expression="kr.or.ddit.annotation.Preparer"/>	
+	</context:component-scan>
+	
+	<!-- 주의! id="messageSource" -->
+	<bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource" 
+		p:basename="kr.or.ddit.msg.message"
+	/>
+	
+	<bean id="webContentInterceptor" class="org.springframework.web.servlet.mvc.WebContentInterceptor" 
+		p:cacheSeconds="0"
+		p:useCacheControlHeader="true"
+		p:useCacheControlNoStore="true"
+		p:useExpiresHeader="true"
+	/>
+	
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**/*.js"/>
+			<mvc:mapping path="/**/*.css"/>
+			<mvc:mapping path="/**/*.html"/>
+			<ref bean="webContentInterceptor"/>
+		</mvc:interceptor>
+	</mvc:interceptors>
+	
+	<mvc:view-controller path="/login" view-name="login/loginForm"/>
+	<mvc:view-controller path="/join" view-name="join/joinType"/>
+	<mvc:view-controller path="/admin/report" view-name="admin/reportReasonView"/>
+	<mvc:view-controller path="/admin/blacklist" view-name="admin/blacklistView"/>
+	
+	
+	<!-- 웹소켓 -->
+	<bean id="echoWebSocketHandler" class="kr.or.ddit.websocket.handler.EchoWebSocketHandler" />
+	<websocket:handlers>
+		<websocket:mapping handler="echoWebSocketHandler" path="/ws/chat"/>
+	</websocket:handlers>
+</beans>
+

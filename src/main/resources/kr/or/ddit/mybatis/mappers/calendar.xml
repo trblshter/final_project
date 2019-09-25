@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.IScheduleDAO">
+	
+<!-- 	<select id="lectureList" parameterType="String" resultType="ScheduledVO"> -->
+<!-- 		SELECT * -->
+<!-- 		FROM HS_SCHEDULE -->
+<!-- 		WHERE SC_WRITER = #{sc_writer} -->
+<!-- 	</select> -->
+	
+	
+	<insert id="insertSchedule" parameterType="ScheduledVO">
+	<selectKey order="BEFORE" keyProperty="sc_no" resultType="String">
+		SELECT NVL(MAX(TO_NUMBER(SC_NO)), 0)+1 FROM HS_SCHEDULE
+	</selectKey>
+		INSERT INTO HS_SCHEDULE (
+  			SC_NO, SC_WRITER, LT_NO,
+    		SC_TURN, SC_STARTDAY, SC_ENDDAY,
+    		SC_CONTENT, SC_TITLE, SC_BGCOLOR,
+    		SC_TCOLOR
+		) VALUES (
+    		#{sc_no}, #{sc_writer}, (SELECT 'LT'||LPAD(TO_NUMBER(MAX(SUBSTR(LT_NO, 3))), 6, '0') FROM HS_LECTURE_TUTOR),
+    		#{sc_turn}, #{sc_startday}, #{sc_endday},
+    		#{sc_content}, #{sc_title}, #{sc_bgcolor},
+    		#{sc_tcolor}
+		)
+	</insert>
+
+<!-- 	<update id="updateLecture" parameterType="ScheduledVO"> -->
+<!-- 		UPDATE HS_SCHEDULE -->
+<!-- 		SET -->
+<!-- 			SC_TITLE =  #{sc_title}, -->
+<!-- 			SC_STARTDAY = #{sc_startday}, -->
+<!-- 			SC_ENDDAY = #{sc_endday}, -->
+<!-- 			LT_NO = #{lt_no}, -->
+<!-- 			SC_BGCOLOR = #{sc_bgcolor}, -->
+<!-- 			SC_CONTENT = #{sc_content} -->
+<!-- 		WHERE  -->
+<!-- 			SC_NO = #{sc_no} -->
+			
+<!-- 	</update> -->
+	
+<!-- 	<delete id="deleteLecture"> -->
+<!-- 		DELETE FROM HS_SCHEDULE -->
+<!-- 		WHERE SC_NO = #{sc_no} -->
+<!-- 	</delete> -->
+	
+
+
+
+
+
+
+
+
+</mapper>

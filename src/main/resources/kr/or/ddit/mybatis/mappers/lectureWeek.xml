@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.ILectureWeekDAO">
+	<insert id="insertLectureWeek">
+	<selectKey order="BEFORE" keyProperty="lw_no" resultType="Integer">
+		SELECT NVL(MAX(LW_NO),0)+1 FROM HS_LECTURE_WEEK
+	</selectKey>	
+
+		INSERT INTO HS_LECTURE_WEEK (
+		    LW_NO, LT_NO, LW_DAY,
+		    LW_STARTTIME, LW_ENDTIME
+		) VALUES (
+		    #{lw_no}, (SELECT 'LT'||LPAD(TO_NUMBER(MAX(SUBSTR(LT_NO, 3))), 6, '0') FROM HS_LECTURE_TUTOR), #{lw_day},
+		    #{lw_starttime}, #{lw_endtime}
+		)
+	</insert>
+</mapper>

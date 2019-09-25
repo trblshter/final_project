@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.message.dao.IMessageDAO">
+	<select id="selectMessageCount" resultType="long">
+		select count(*)
+  		  from hs_message
+  		 where msg_recipient = #{searchWord }
+	</select>
+	<select id="selectMessageList" parameterType="PagingVO" resultType="MessageVO">
+		select B.*
+		 from(
+		select rownum rnum, A.*
+		  from(
+		        select msg_no, msg_writer, msg_recipient, 
+						to_char(msg_date, 'YYYY-MM-DD') msg_date, msg_title, msg_content, msg_ok
+		          from hs_message
+		         where msg_recipient = #{searchWord }
+		         order by msg_date desc
+		  )A
+		)B
+		<![CDATA[
+			WHERE rnum between #{startRow} and #{endRow}
+		]]>
+	</select>
+	
+	<resultMap type="MessageVO" id="messageMap" autoMapping="true" >
+		<id property="msg_no" column="msgNo" />
+		<collection property="attachList" ofType="AttachmentVO" autoMapping="true">
+			
+		</collection>
+	</resultMap>
+	<select id="selectMessage" parameterType="string" resultMap="messageMap">
+		select hs_message.msg_no msgNo, msg_writer, msg_recipient, 
+			msg_date, msg_title, msg_content, msg_ok, team_no,
+			att_no,
+		    att_filename,att_savename,att_mime,
+		    att_filesize,att_fancysize,att_download
+		  from hs_message left outer join hs_attachment on(hs_message.msg_no = hs_attachment.msg_no)
+		 where hs_message.msg_no = #{msg_no}
+	</select>
+	<update id="readMessage" parameterType="string">
+		update hs_message
+		   set
+		  msg_ok = 1
+		 where msg_no = #{msg_no}
+	</update>
+	<insert id="insertMessage" parameterType="MessageVO">
+		<selectKey order="BEFORE" resultType="string" keyProperty="msg_no">
+			select 'MSG'||lpad(nvl(to_number(substr(max(msg_no), 4)),0)+1, 5, '0')
+  			  from hs_message
+		</selectKey>
+		insert into hs_message(
+			msg_no, msg_writer, msg_recipient, msg_date, 
+			msg_title, msg_content
+			<if test="team_no!=null">
+			, team_no
+			</if>
+		)
+		values
+		(
+			#{msg_no}, #{msg_writer}, #{msg_recipient}, sysdate, 
+			#{msg_title}, #{msg_content}
+			<if test="team_no!=null">
+			, #{team_no}
+			</if>
+		)
+	</insert>
+	<delete id="deleteMessage" parameterType="string">
+		delete from hs_message
+		 where msg_no = #{msg_no}
+	</delete>
+	<select id="unreadMessageCount" parameterType="string" resultType="int">
+		select count(*)
+		  from hs_message
+		 where msg_ok = 0 and msg_recipient = #{user_id}
+	</select>
+</mapper>

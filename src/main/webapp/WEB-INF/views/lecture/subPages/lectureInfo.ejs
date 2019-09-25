@@ -1,0 +1,507 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<style>
+   div.overWrap{
+      margin : 5%;
+   }
+	div.overWrap{
+		margin : 5%;
+	}
+	img.frd1{
+		 width: 100%;
+   		 height: 100%;
+	}
+	img.frd2{
+		width: 144px;
+		height : 144px;	
+	}
+	label.col-form-label{
+		font-weight : bold;
+	}
+</style>
+
+<div class="overWrap">
+	<h1 class="sr-only">강의 정보</h1>
+	<div class="jumbotron row">
+		<div class="col-2 profile">
+			<c:if test="${tutor.user_imageBase64 eq null}">
+				<img class="frd1" alt="별" src="${pageContext.request.contextPath}/image/star.png"/>
+			</c:if>
+			<c:if test="${tutor.user_imageBase64 ne null}">
+				<img class="frd1" alt="${lecture.lt_title}.jpg" src="data:image/*;base64,${tutor.user_imageBase64}"/>
+			</c:if>
+		</div>
+		<div class="col-10">
+		  <h1>${lecture.lt_title}</h1>
+		  <p class="lead">과목 : ${lecture.ctgy_name} / 튜터 : ${tutor.user_name}</p>
+		  <hr class="my-4">
+		  <p>수강기간 : ${lecture.lt_start_date} ~ ${lecture.lt_end_date}</p>
+		 <c:if test="${loginUser.user_type eq 'tutee'}">
+			<input type="button" value="리뷰작성" class="btn btn-secondary float-right" id="reviewInsertBtn" data-toggle="modal" data-target="#reviewModal" />
+	  	</c:if>
+	  </div>
+	</div>
+	<h2 class="mb-3">튜티</h4>
+	<div class="form-group form-inline row">
+	
+	
+	
+	<c:if test="${team.team_member1 ne null }">
+		<div class="left-float bg-secondary rounded-pill col-2 p-2 mr-4">
+			<div class="imgWrap rounded-circle overflow-hidden p-0 d-inline-block align-middle mr-3" style="width:80px; height:80px;">
+				<c:if test="${user1.user_imageBase64 eq null}">
+					<img class="frd2 w-100 h-100" alt="" src="${pageContext.request.contextPath}/image/star.png">
+				</c:if>
+				<c:if test="${user1.user_imageBase64 ne null}">
+					<img class="frd2 w-100 h-100" alt="" src="data:image/*;base64,${user1.user_imageBase64}">
+				</c:if>
+			</div>
+			<p class="d-inline-block align-middle text-light h5">${team.team_member1}</p>
+		</div>
+	</c:if>
+	<c:if test="${team.team_member2 ne null }">
+		<div class="left-float bg-secondary rounded-pill col-2 p-2 mr-4">
+			<div class="imgWrap rounded-circle overflow-hidden p-0 d-inline-block align-middle mr-3" style="width:80px; height:80px;">
+				<c:if test="${user2.user_imageBase64 eq null}">
+					<img class="frd2 w-100 h-100" alt="" src="${pageContext.request.contextPath}/image/star.png">
+				</c:if>
+				<c:if test="${user2.user_imageBase64 ne null}">
+					<img class="frd2 w-100 h-100" alt="" src="data:image/*;base64,${user2.user_imageBase64}">
+				</c:if>
+			</div>
+			<p class="d-inline-block align-middle text-light h5">${team.team_member2}</p>
+		</div>
+	</c:if>
+	<c:if test="${team.team_member3 ne null }">
+		<div class="left-float bg-secondary rounded-pill col-2 p-2 mr-4">
+			<div class="imgWrap rounded-circle overflow-hidden p-0 d-inline-block align-middle mr-3" style="width:80px; height:80px;">
+				<c:if test="${user3.user_imageBase64 eq null}">
+					<img class="frd2 w-100 h-100" alt="" src="${pageContext.request.contextPath}/image/star.png">
+				</c:if>
+				<c:if test="${user3.user_imageBase64 ne null}">
+					<img class="frd2 w-100 h-100" alt="" src="data:image/*;base64,${user3.user_imageBase64}">
+				</c:if>
+			</div>
+			<p class="d-inline-block align-middle text-light h5">${team.team_member3}</p>
+		</div>
+	</c:if>
+	<c:if test="${team.team_member4 ne null }">
+		<div class="left-float bg-secondary rounded-pill col-2 p-2 mr-4">
+			<div class="imgWrap rounded-circle overflow-hidden p-0 d-inline-block align-middle mr-3" style="width:80px; height:80px;">
+				<c:if test="${user4.user_imageBase64 eq null}">
+					<img class="frd2 w-100 h-100" alt="" src="${pageContext.request.contextPath}/image/star.png">
+				</c:if>
+				<c:if test="${user4.user_imageBase64 ne null}">
+					<img class="frd2 w-100 h-100" alt="" src="data:image/*;base64,${user4.user_imageBase64}">
+				</c:if>
+			</div>
+			<p class="d-inline-block align-middle text-light h5">${team.team_member4}</p>
+		</div>
+	</c:if>
+	</div>
+	<br>
+	<div class="form-group row">
+		<div class="col-4">
+			<div id="container">
+			</div>
+		</div>
+		<div class="col-8">
+			<h4>자료 공유</h4>
+			<c:if test="${loginUser.user_type eq 'tutor'}">
+				<button class="btn btn-info" style="margin:0 0 1% 85%;"
+					data-target="#modalUpload" data-toggle="modal" >업로드</button>
+			</c:if>
+			<table class="table table-striped" style="width: 100%;">
+				<thead class="head" style="text-align: center;" id="head">
+					<tr style="width: 100%;">
+						<th style="width: 10%; text-align: center;">번호</th>
+						<th style="width: 35%; text-align: center;">파일명</th>
+						<th style="width: 15%; text-align: center;">작성자</th>
+						<th style="width: 15%; text-align: center;">다운로드 수</th>
+					</tr>
+				</thead>
+				<tbody id="listBody"> 
+				</tbody>
+			</table>
+			<div id="pagingArea" style="width: 100%; display: inline-block;">
+				${pagingVO.pagingHTMLForBS }
+			</div>
+		</div>
+	</div>
+	<form id="searchForm">
+<%-- 	<input type="hidden" name="searchType" value="${pagingVO.searchType}" /> --%>
+		<input type="hidden" name="searchWord" value="" /><!-- 세션으로 바꿔줘야됨 -->
+		<input type="hidden" name="page" />
+	</form>
+</div>
+
+
+<%-- Modal :: 리뷰작성 --%>
+<div class="modal fade" id="reviewModal" tabindex="-1" role="dialog" aria-labelledby="modalUploadLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reviewModalLabel">리뷰 작성</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+      	<form id="reviewInsertForm">
+	        <input type="hidden" name="rv_writer" value="${loginUser.user_id }" />
+	        <input type="hidden" name="rv_recipient" value="${lecture.lt_writer}" />
+	        <textarea rows="5" cols="40" name="rv_content" class="form-control"></textarea>
+	        <div class="form-group">
+			    <label for="controlGrade">별점</label>
+			    <select class="form-control" id="controlGrade" name="rv_grade">
+			      <option value="1">★</option>
+			      <option value="2">★★</option>
+			      <option value="3" selected>★★★</option>
+			      <option value="4">★★★★</option>
+			      <option value="5">★★★★★</option>
+			    </select>
+			</div>
+		</form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="reviewAddBtn" class="btn btn-primary" data-dismiss="modal">확인</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+<%-- Modal END :: 리뷰작성  --%>
+
+
+<%-- Modal :: 자료 공유 (upload) --%>
+<div class="modal fade" id="modalUpload" tabindex="-1" role="dialog" aria-labelledby="modalUploadLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalUploadLabel">자료 업로드</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="uploadForm" method="post" enctype="multipart/form-data">
+          <input type="hidden" name="lt_no" value="${lt_no}" />
+          <div class="form-group">
+            <label for="selectFile" class="col-form-label">업로드 할 파일을 선택하세요.</label>
+            <input type="file" class="form-control" id="sharedFile" name="item" 
+            	style="width:80%; height:40%;">
+          </div>
+          <div class="form-group">
+            <label for="fileDesc" class="col-form-label">설명</label>
+            <textarea class="form-control" name="att_desc" id="descArea"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+        <button type="button" id="btn_upload" class="btn btn-primary" data-dismiss="modal">업로드</button>
+      </div>
+    </div>
+  </div>
+</div>
+<%-- Modal END :: 자료공유 (upload)  --%>
+
+
+<%-- Modal :: 자료 공유 (file click) --%>
+<div class="modal fade" id="modalSharing" tabindex="-1" role="dialog" aria-labelledby="modalSharingLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalSharingLabel">자료공유 </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+	      <div class="form-group">
+	        <label readonly id="nameLabel"></label>
+	        <br>
+	        <label for="downLoadFile" class="col-form-label">파일 사이즈</label>
+	        <label readonly id="sizeLabel"></label>
+	        <br>
+	        <label for="downLoadFile" class="col-form-label">다운로드 수</label>
+	        <label readonly id="downloadLabel"></label>
+	      </div>
+	      <div class="form-group">
+	        <label for="fileDesc" class="col-form-label">설명</label>
+	        <textarea class="form-control" id="file-desc"></textarea>
+	      </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-info" data-dismiss="modal" id="btn_download" >다운로드</button>
+		<c:if test="${loginUser.user_type eq 'tutor'}">	
+			<button type="button" class="btn btn-danger" id="btn_delete" data-dismiss="modal">삭제하기</button>
+		</c:if>
+      </div>
+    </div>
+  </div>
+</div>
+<%-- Modal END :: 자료공유 (file click)  --%>
+
+
+<%-- Modal :: Confirm --%>
+
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="conf-modal">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="myModalLabel">정말 삭제하시겠습니까?</h5>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" id="modal-btn-si">네</button>
+        <button type="button" class="btn btn-light" id="modal-btn-no">아니오</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="alert" role="alert" id="result"></div>
+
+<%-- Modal :: Confirm END --%>	
+
+<script src="${pageContext.request.contextPath }/js/highchart/highChartTheme.js"></script>
+<script type="text/javascript">
+	function paging(page){
+		if(page<=0) return;
+		searchForm.find("input[name='page']").val(page);
+		searchForm.submit();
+		searchForm.find("input[name='page']").val("");
+	}
+	
+	let searchForm = $("#searchForm");
+	let uploadForm = $("#uploadForm");
+	var listBody = $("tbody#listBody");
+	var head = $("#head");
+	var titleBar = $('#titleBar');
+	var pagingArea = $("#pagingArea");
+	var detailUrl;
+	var btn_upload = $("button#btn_upload");
+	var btn_download = $("button#btn_download");
+	var btn_delete = $("button#btn_delete");
+	var $nameLabel = $("label#nameLabel");
+	var $sizeLabel = $("label#sizeLabel");
+	var $downloadLabel = $("label#downloadLabel");
+	var $descArea = $("textarea#file-desc");
+	var attNo = null;
+	var reviewModal = $('#reviewModal');
+	var reviewInsertForm = $('#reviewInsertForm');
+	var reviewAddBtn = $('#reviewAddBtn');
+	
+	var modalConfirm = function(callback){
+
+	  $("#modal-btn-si").on("click", function(){
+	    callback(true);
+	    $("#conf-modal").modal('hide');
+	  });
+	  
+	  $("#modal-btn-no").on("click", function(){
+	    callback(false);
+	    $("#conf-modal").modal('hide');
+	  });
+	  
+	};
+	
+	btn_delete.on("click", function(){
+	
+		$("#conf-modal").modal('show');
+		
+		modalConfirm(function(confirm){
+			if(confirm){
+				$.ajax({
+					url : "${pageContext.request.contextPath }/myLecture/removeFile/"+attNo,
+					dataType : "json",
+					method : 'get',
+					success : function(resp){
+						console.log(resp.state);
+						paging(1);
+					},
+					error : function(error){
+						console.log(error);
+					}
+				});
+			}
+		});		
+	});
+	
+	btn_upload.on("click", function(){
+		uploadForm.submit();
+		$('#modalUpload').modal('hide');
+	});
+	
+	btn_download.on("click", function(){
+		location.href="${pageContext.request.contextPath }/download.do?what="+attNo;
+	});
+	
+	uploadForm.on("submit", function(event){
+		var method = uploadForm.attr("method");
+		var formData = new FormData(uploadForm[0]);
+		event.preventDefault();
+		$.ajax({
+			url : "${pageContext.request.contextPath }/myLecture/detail/addFile",
+			data: formData,
+			contentType : false,
+			processData : false,
+			dataType : "json",
+			method : method,
+			success : function(resp){
+				alert(resp.state);
+				paging(1);
+				uploadForm[0].reset();
+			},
+			error : function(error){
+				console.log(error);
+			}
+		});
+	});
+	
+	searchForm.on("submit", function(event){
+		var queryString = $(this).serialize();
+		event.preventDefault();
+			$.ajax({
+				url : "",
+				data : queryString,
+				dataType : "json",
+				method : 'post',
+				success : function(resp) {
+					let attachList = resp.dataList;
+					var trTags = [];
+					var trHead = [];
+					if(attachList && attachList.length > 0){
+						$(attachList).each(function(idx, attach){
+							var tr = $("<tr>").prop("id", attach.att_no);
+							tr.append(
+									$("<td style='text-align:center; vertical-align: middle;'>").html(
+										attach.rnum
+									)		
+									, $("<td style='text-align:center; vertical-align: middle;'>").html(
+										"<a href='#' id='"+attach.att_no+"'>"+attach.att_filename+"</a>"
+									)		
+									, $("<td style='text-align:center; vertical-align: middle;'>").html(
+										'${lecture.lt_writer}'
+									)
+									, $("<td style='text-align:center; vertical-align: middle;'>").html(
+										attach.att_download
+									)
+								);		
+							trTags.push(tr);
+						});
+					}else{
+						trTags.push(
+						  $("<tr>").append(
+							$("<td>").prop({colspan:4})
+								     .text("공유된 파일이 존재하지 않습니다.")
+						  )
+						);
+					}
+					listBody.html(trTags);
+					pagingArea.html(resp.pagingHTMLForBS);
+				},
+				error : function(errorResp) {
+					console.log(errorResp.status + ", "
+							+ errorResp.responseText)
+				}
+		});
+	});
+	
+	paging(1);
+	
+ 	$('tbody#listBody').on('click', 'a', function(){
+		attNo = $(this).prop('id');
+		console.log(attNo);
+		$.ajax({
+			url : "${pageContext.request.contextPath }/myLecture/detail/getFile/"+attNo,
+			method : "get",
+			dataType: "json",
+			success : function(attach){
+				$nameLabel.text(attach.att_filename);
+				$sizeLabel.text(attach.att_fancysize);
+				$downloadLabel.text(attach.att_download);
+				$descArea.val(attach.att_desc);
+				$('#modalSharing').modal('show');
+			},
+			error : function(err){
+				console.log(err);			
+			}
+		});
+	}).css({cursor : "pointer"});
+		
+
+   Highcharts.chart('container', {
+     chart: {
+       type: 'bar'
+     },
+     title: {
+       text: '강의 진행률'
+     },
+     subtitle: {
+       text: '${lecture.lt_title}'
+     },
+     xAxis: {
+       categories: ['진행도'],
+       title: {   
+         text: null
+       }
+     },
+     yAxis: {
+       min: 0,
+         //max: ${progress.lt_turn},
+       title: {
+         text: '강의 회차 수',
+         align: 'high'
+       },
+       labels: {
+         overflow: 'justify'
+       }
+     },
+     plotOptions: {
+       bar: {
+         dataLabels: {
+           enabled: true
+            }
+          }
+        },
+     credits: {
+       enabled: false
+     },
+     series: [{
+       name: '현재 강의 회차',
+       data: [${progress.lecture_turn}]
+     }, {
+       name: '총 강의 회차',
+       data: [${progress.lt_turn}]
+     }]
+   });
+   
+   
+   reviewAddBtn.on('click',function(){
+   		reviewInsertForm.submit();
+   });
+   reviewInsertForm.on('submit',function(){
+   		event.preventDefault();
+
+		var data = $(this).serialize();
+		
+		$.ajax({
+			url:"${pageContext.request.contextPath}/review/reviewInsert",
+			method:"post",
+			data: data,
+			dataType:"json",
+			success:function(resp){
+				if(resp.success){
+					reviewInsertForm[0].reset();
+				}else{
+					alert(resp.message);
+				}
+			}
+		});
+		return false;
+   });
+</script>

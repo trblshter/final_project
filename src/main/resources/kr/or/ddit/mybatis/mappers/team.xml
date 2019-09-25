@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.ITeamDAO">
+	<insert id="insertTeam">
+		INSERT INTO HS_TEAM (
+		    TEAM_NO, LT_NO
+		) VALUES (
+		    TEAM_SEQ.NEXTVAL, 
+		    (SELECT 'LT'||LPAD(TO_NUMBER(MAX(SUBSTR(LT_NO, 3))), 6, '0') FROM HS_LECTURE_TUTOR)
+		)
+	</insert>
+	
+	<insert id="insertLectureUserTeam">
+		<selectKey order="BEFORE" keyProperty="team_no" resultType="Integer">
+			SELECT TEAM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO HS_TEAM (
+			TEAM_NO 
+			<if test="team_member1!=null">
+	    		,TEAM_MEMBER1
+	    	</if>
+	    	<if test="team_member2!=null">
+	    		,TEAM_MEMBER2
+	    	</if>
+	    	<if test="team_member3!=null">
+	    		,TEAM_MEMBER3
+	    	</if>
+	    	<if test="team_member4!=null">
+	    		,TEAM_MEMBER4
+	    	</if>
+		) VALUES (
+			#{team_no}
+			<if test="team_member1!=null">
+	    		,#{team_member1}
+	    	</if>
+	    	<if test="team_member2!=null">
+	    		,#{team_member2}
+	    	</if>
+	    	<if test="team_member3!=null">
+	    		,#{team_member3}
+	    	</if>
+	    	<if test="team_member4!=null">
+	    		,#{team_member4}
+	    	</if>
+		)
+		
+	</insert>
+	<update id="updateTeam" parameterType="TeamVO">
+		UPDATE hs_team
+	    SET
+	    	<if test="team_member1!=null">
+	    		team_member1 = #{team_member1}
+	    	</if>
+	    	<if test="team_member2!=null">
+	    		,team_member2 = #{team_member2}
+	    	</if>
+	    	<if test="team_member3!=null">
+	    		,team_member3 = #{team_member3}
+	    	</if>
+	    	<if test="team_member4!=null">
+	    		,team_member4 = #{team_member4}
+	    	</if>
+		WHERE
+		    lt_no = #{lt_no}
+	</update>
+	<select id="selectTeam" resultType="TeamVO" parameterType="String">
+		select TEAM_NO, TEAM_MEMBER1, TEAM_MEMBER2, TEAM_MEMBER3, TEAM_MEMBER4
+		  from hs_team
+		 where lt_no = #{lt_no}
+	</select>
+	<select id="selectTeam2" resultType="TeamVO" parameterType="int">
+		select TEAM_NO, TEAM_MEMBER1, TEAM_MEMBER2, TEAM_MEMBER3, TEAM_MEMBER4, LT_NO
+		  from hs_team
+		 where TEAM_NO = #{team_no}
+	</select>
+	
+	<update id="updateSelectedTeam">
+		UPDATE HS_TEAM
+		SET
+			LT_NO = #{lt_no}
+		WHERE
+			TEAM_NO = #{team_no}
+	</update>
+</mapper>

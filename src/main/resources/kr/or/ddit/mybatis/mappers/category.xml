@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.lecture.dao.ICategoryDAO">
+	<insert id="insertCategory">
+		<selectKey order="BEFORE" keyProperty="ctgys_no" resultType="Integer">
+			SELECT NVL(MAX(CTGYS_NO), 0) + 1 FROM HS_CATEGORIES
+		</selectKey>
+		INSERT INTO HS_CATEGORIES (
+		    CTGYS_NO, BO_NO, CTGY_NO
+		) VALUES (
+		    #{ctgys_no},
+		    (SELECT 'LT'||LPAD(TO_NUMBER(MAX(SUBSTR(LT_NO, 3))), 6, '0') FROM HS_LECTURE_TUTOR),
+		    #{ctgy_no}
+		)
+	</insert>
+	<select id="selectCategoryList" resultType="CategoryVO">
+		SELECT
+		    CTGY_NO,
+		    CTGY_NAME,
+		    CTGY_IMAGE,
+		    CTGY_TYPE
+		FROM
+		    HS_CATEGORY
+	</select>
+</mapper>
+
